@@ -35,6 +35,13 @@ canvas {
   display: block;
   pointer-events: none;
 }
+/* Touch browsers: overhang the viewport so the fog runs under the status bar and toolbar instead of leaving black bands */
+@media (hover: none), (pointer: coarse) {
+  canvas {
+    top: -140px;
+    height: calc(100% + 280px);
+  }
+}
 #back {
   z-index: 0;
   filter: blur(2px);
