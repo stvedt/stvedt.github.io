@@ -1,0 +1,134 @@
+/* Layout: one centered column on black. Deep fog renders behind the type, a thinner near layer drifts over it. */
+:root {
+  --bg: #000;
+  --fg: #e9e7e2;
+  --muted: #8a8986;
+  --faint: #55554f;
+  --serif: "Cormorant Garamond", "Iowan Old Style", Georgia, serif;
+  --mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  color-scheme: dark;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--serif);
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Shown until WebGL fog takes over, and kept if WebGL is unavailable */
+body.no-fog {
+  background: radial-gradient(ellipse at 50% 70%, #1a1a1a, #000 70%);
+}
+
+canvas {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  pointer-events: none;
+}
+#back {
+  z-index: 0;
+  filter: blur(2px);
+  transform: scale(1.02);
+}
+#front {
+  z-index: 2;
+  filter: blur(3px);
+  transform: scale(1.02);
+}
+
+.stage {
+  position: relative;
+  z-index: 1;
+  height: 100%;
+  min-height: 100dvh;
+  box-sizing: border-box;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  padding-block: 32px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 22px;
+  max-width: 44rem;
+}
+
+h1 {
+  margin: 0;
+  font-weight: 300;
+  font-size: clamp(3rem, 10vw, 7.5rem);
+  line-height: 0.92;
+  letter-spacing: 0.01em;
+  text-wrap: balance;
+  text-shadow: 0 0 40px rgba(233, 231, 226, 0.08);
+}
+
+.tag {
+  margin: 0;
+  font-family: var(--mono);
+  font-weight: 300;
+  font-size: 11px;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+nav {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px 26px;
+  margin-top: 18px;
+}
+nav a {
+  font-family: var(--mono);
+  font-weight: 300;
+  font-size: 12px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--muted);
+  text-decoration: none;
+  padding: 8px 2px;
+  transition: color 0.8s ease, letter-spacing 0.8s ease;
+}
+nav a:hover,
+nav a:focus-visible {
+  color: var(--fg);
+  letter-spacing: 0.24em;
+  outline: none;
+}
+nav a:focus-visible {
+  text-decoration: underline;
+  text-underline-offset: 6px;
+  text-decoration-thickness: 1px;
+}
+
+.coord {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 3;
+  text-align: center;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.24em;
+  color: var(--faint);
+  font-variant-numeric: tabular-nums;
+  padding-bottom: calc(22px + env(safe-area-inset-bottom, 0px));
+}
