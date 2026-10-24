@@ -78,16 +78,6 @@ h1 {
   text-shadow: 0 0 40px rgba(233, 231, 226, 0.08);
 }
 
-.tag {
-  margin: 0;
-  font-family: var(--mono);
-  font-weight: 300;
-  font-size: 11px;
-  letter-spacing: 0.32em;
-  text-transform: uppercase;
-  color: var(--muted);
-}
-
 nav {
   display: flex;
   flex-wrap: wrap;
