@@ -1,99 +1,44 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
   <head>
-    <title>Stephen Tvedt</title>
     <meta charset="utf-8" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1, user-scalable=no"
-    />
-    <link rel="stylesheet" href="assets/css/main.css" />
-    <noscript
-      ><link rel="stylesheet" href="assets/css/noscript.css"
-    /></noscript>
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Stephen Tvedt</title>
+    <meta name="description" content="Stephen Tvedt — web, photography and all things creative." />
+    <meta name="theme-color" content="#000000" />
+    <meta name="color-scheme" content="dark" />
+    <meta property="og:title" content="Stephen Tvedt" />
+    <meta property="og:description" content="Web · Photography · All things creative" />
+    <meta property="og:url" content="https://stephentvedt.com/" />
+    <meta property="og:type" content="website" />
+    <link rel="canonical" href="https://stephentvedt.com/" />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%23000'/%3E%3Ctext x='32' y='45' font-family='Georgia,serif' font-size='38' fill='%23E9E7E2' text-anchor='middle'%3ET%3C/text%3E%3C/svg%3E" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=Geist+Mono:wght@300;400&display=swap" />
+    <link rel="stylesheet" href="assets/css/style.css" />
   </head>
-  <body class="is-preload">
-    <div id="wrapper">
-      <div id="bg"></div>
-      <div id="overlay"></div>
-      <div id="main">
-        <!-- Header -->
-        <header id="header">
-          <h1>Stephen Tvedt</h1>
-          <p>
-            Web &nbsp;&bull;&nbsp; Photography &nbsp;&bull;&nbsp; All things
-            creative
-          </p>
-          <nav>
-            <ul>
-              <li>
-                <a
-                  href="https://www.instagram.com/stephen_tvedt"
-                  class="icon solid fa-camera"
-                  target="_blank"
-                  ><span class="label">Photography</span></a
-                >
-              </li>
-              <li>
-                <a
-                  href="https://blog.stephentvedt.com/"
-                  class="icon solid fa-rss"
-                  target="_blank"
-                  ><span class="label">Blog</span></a
-                >
-              </li>
-              <li>
-                <a
-                  href="https://web.stephentvedt.com/"
-                  class="icon solid fa-code"
-                  target="_blank"
-                  ><span class="label">Web</span></a
-                >
-              </li>
-              <li>
-                <a
-                  href="https://github.com/stvedt"
-                  class="icon brands fa-github"
-                  target="_blank"
-                  ><span class="label">Github</span></a
-                >
-              </li>
-              <li>
-                <a
-                  href="https://www.linkedin.com/in/stephen-sven-tvedt-11356a1b/"
-                  class="icon brands fa-linkedin"
-                  target="_blank"
-                  ><span class="label">Email</span></a
-                >
-              </li>
-            </ul>
-          </nav>
-        </header>
-
-        <!-- Footer -->
-        <!-- <footer id="footer">
-          <span class="copyright"
-            >&copy; 2020</span
-          >
-        </footer> -->
+  <body>
+    <canvas id="back" aria-hidden="true"></canvas>
+    <main class="stage">
+      <div class="col">
+        <h1>Stephen Tvedt</h1>
+        <nav aria-label="Elsewhere">
+          <a href="https://web.stephentvedt.com/" target="_blank" rel="noopener">Web</a>
+          <a href="https://thoughtfultechleadership.substack.com/" target="_blank" rel="noopener">Writing</a>
+          <a href="https://www.instagram.com/stephen_tvedt" target="_blank" rel="noopener">Photo</a>
+          <a href="https://github.com/stvedt" target="_blank" rel="noopener">Git</a>
+          <a href="https://www.linkedin.com/in/stephen-sven-tvedt-11356a1b/" target="_blank" rel="noopener">LinkedIn</a>
+        </nav>
       </div>
-    </div>
-    <script>
-      window.onload = function () {
-        document.body.classList.remove('is-preload');
-      };
-      window.ontouchmove = function () {
-        return false;
-      };
-      window.onorientationchange = function () {
-        document.body.scrollTop = 0;
-      };
-    </script>
+    </main>
+    <canvas id="front" aria-hidden="true"></canvas>
+    <div class="coord">41.05° N · 73.54° W</div>
+
+    <script src="assets/js/fog.js"></script>
+
     <!-- Global site tag (gtag.js) - Google Analytics -->
-    <script
-      async
-      src="https://www.googletagmanager.com/gtag/js?id=G-NB2YRD5ZEM"
-    ></script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-NB2YRD5ZEM"></script>
     <script>
       window.dataLayer = window.dataLayer || [];
       function gtag() {
