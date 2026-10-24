@@ -16,8 +16,8 @@ float n3(vec3 x){ vec3 i=floor(x), f=fract(x); f=f*f*(3.-2.*f);
 float fbm(vec3 p){ float v=0.,a=.5; for(int k=0;k<4;k++){ v+=a*n3(p); p=p*2.02+vec3(1.7,9.2,3.1); a*=.5; } return v; }
 float dens(vec3 p){
   vec3 q=p*vec3(.9,1.25,.9);
-  q+=vec3(T*.028,-T*.004,T*.012);
-  float w=fbm(q*.45+vec3(0.,0.,T*.006));
+  q+=vec3(T*.11,-T*.014,T*.05);              // drift: sideways roll with slow churn in depth
+  float w=fbm(q*.45+vec3(0.,0.,T*.035));
   float d=fbm(q+vec3(w*1.6,w*.5,w*.8));
   d=smoothstep(.42,.9,d);
   d*=mix(1.1,.7,smoothstep(-.6,.7,p.y));     // fog pools low
@@ -28,9 +28,12 @@ void main(){
   vec2 m=(M-.5)*vec2(R.x/R.y,1.);
   float jit=mix(.5,h3(vec3(gl_FragCoord.xy,fract(T)*61.)),jitAmt);
   vec2 dm=uv-m; float near=exp(-dot(dm,dm)*7.);
-  // Clear black center, fog thickens toward the screen edges. Narrow screens weight the top and bottom more.
+  // Clear black center, fog thickens toward the screen edges. Narrow screens weight the top and bottom more,
+  // start the falloff sooner and add a base haze so the edges never read as empty.
   vec2 q=gl_FragCoord.xy/R*2.-1.;
-  float edge=smoothstep(.3,.95,length(q*vec2(clamp(R.x/R.y,.5,1.),1.)));
+  float narrow=1.-clamp(R.x/R.y,0.,1.);
+  float edge=smoothstep(.3-.12*narrow,.95-.2*narrow,length(q*vec2(clamp(R.x/R.y,.5,1.),1.)));
+  float haze=edge*edge*.18*narrow;
   vec3 col=vec3(0.); float acc=0.;
   float dz=(zB-zA)/${STEPS}.;
   for(int i=0;i<${STEPS};i++){
@@ -38,7 +41,7 @@ void main(){
     vec3 p=vec3(uv*(.6+z*.55),z*1.3);
     p.xy-=m*.10/z;                         // parallax: near fog shifts more
     p.xy-=V*near*(.9/z);                   // wake from cursor motion
-    float d=dens(p)*gain*mix(.06,1.7,edge);
+    float d=(dens(p)+haze)*gain*mix(.06,1.7+1.2*narrow,edge);
     d*=1.-clearAmt*near;                   // breath of clear air around the cursor
     float a=1.-exp(-d*dz*2.4);
     float depth=exp(-(z-.3)*.38);
