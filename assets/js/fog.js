@@ -38,7 +38,7 @@ void main(){
   float narrow=1.-clamp(aspect,0.,1.);
   float edge=smoothstep(.3-.12*narrow,.95-.2*narrow,length(q*vec2(clamp(aspect,.5,1.),1.)));
   float haze=edge*edge*.14*narrow;
-  vec2 dw=(uv-W.xy)/vec2(.75,.2); float wm=W.z*exp(-dot(dw,dw));   // soft horizontal band
+  vec2 dw=(uv-W.xy)/vec2(.9,.3); float wm=W.z*exp(-dot(dw,dw));   // soft horizontal band
   vec3 col=vec3(0.); float acc=0.;
   float dz=(zB-zA)/${STEPS}.;
   for(int i=0;i<${STEPS};i++){
@@ -49,11 +49,11 @@ void main(){
     float n=dens(p);
     float d=(n+haze)*gain*mix(.06,1.6+.9*narrow,edge);
     d*=1.-clearAmt*near;                   // breath of clear air around the cursor
-    d+=wm*(n*1.6+.25)*1.4;                // wisp is shaped by the same noise so it reads as fog, not a blob
+    d+=wm*(n*2.4+.45)*2.;                // wisp is shaped by the same noise so it reads as fog, not a blob
     float a=1.-exp(-d*dz*2.4);
     float depth=exp(-(z-.3)*.38);
     float glow=backlit*edge*.7;             // light the outer fog, not the center
-    vec3 c=vec3(.70,.71,.72)*(.16+.5*d)*depth+vec3(.95,.93,.88)*glow*d*.42;
+    vec3 c=vec3(.70,.71,.72)*(.16+.5*min(d,1.))*depth+vec3(.95,.93,.88)*glow*min(d,1.)*.42;
     col+=(1.-acc)*a*c; acc+=(1.-acc)*a;
   }
   col+=(h3(vec3(gl_FragCoord.xy,T))-.5)*.012*acc*jitAmt;
@@ -102,7 +102,7 @@ function stepWisp(){
   const u=(T-wisp.t)/5.5;
   if(u>=1){wisp.t=-1;wisp.a=0;return;}
   const span=Math.min(innerWidth/innerHeight,1.6)*.5+.4;
-  wisp.x=wisp.dir*(u*2-1)*span; wisp.y=wisp.y0+(u-.5)*.04; wisp.a=.9*Math.sin(Math.PI*u)**2;
+  wisp.x=wisp.dir*(u*2-1)*span; wisp.y=wisp.y0+(u-.5)*.04; wisp.a=Math.sin(Math.PI*u)**2;
 }
 addEventListener('pointermove',e=>{
   const nx=e.clientX/innerWidth, ny=1-e.clientY/innerHeight, now=performance.now();
