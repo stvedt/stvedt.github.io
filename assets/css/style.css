@@ -3,7 +3,6 @@
   --bg: #000;
   --fg: #e9e7e2;
   --muted: #8a8986;
-  --faint: #55554f;
   --serif: "Cormorant Garamond", "Iowan Old Style", Georgia, serif;
   --mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, monospace;
   color-scheme: dark;
@@ -118,7 +117,8 @@ nav a:focus-visible {
   font-family: var(--mono);
   font-size: 10px;
   letter-spacing: 0.24em;
-  color: var(--faint);
+  color: var(--muted);
   font-variant-numeric: tabular-nums;
+  text-shadow: 0 0 6px #000, 0 0 14px #000;
   padding-bottom: calc(22px + env(safe-area-inset-bottom, 0px));
 }

@@ -20,7 +20,7 @@ float dens(vec3 p){
   float w=fbm(q*.45+vec3(0.,0.,T*.006));
   float d=fbm(q+vec3(w*1.6,w*.5,w*.8));
   d=smoothstep(.42,.9,d);
-  d*=mix(1.15,.45,smoothstep(-.6,.7,p.y));   // fog pools low
+  d*=mix(1.1,.7,smoothstep(-.6,.7,p.y));     // fog pools low
   return d;
 }
 void main(){
@@ -28,6 +28,9 @@ void main(){
   vec2 m=(M-.5)*vec2(R.x/R.y,1.);
   float jit=mix(.5,h3(vec3(gl_FragCoord.xy,fract(T)*61.)),jitAmt);
   vec2 dm=uv-m; float near=exp(-dot(dm,dm)*7.);
+  // Clear black center, fog thickens toward the screen edges. Narrow screens weight the top and bottom more.
+  vec2 q=gl_FragCoord.xy/R*2.-1.;
+  float edge=smoothstep(.3,.95,length(q*vec2(clamp(R.x/R.y,.5,1.),1.)));
   vec3 col=vec3(0.); float acc=0.;
   float dz=(zB-zA)/${STEPS}.;
   for(int i=0;i<${STEPS};i++){
@@ -35,11 +38,11 @@ void main(){
     vec3 p=vec3(uv*(.6+z*.55),z*1.3);
     p.xy-=m*.10/z;                         // parallax: near fog shifts more
     p.xy-=V*near*(.9/z);                   // wake from cursor motion
-    float d=dens(p)*gain;
+    float d=dens(p)*gain*mix(.06,1.7,edge);
     d*=1.-clearAmt*near;                   // breath of clear air around the cursor
     float a=1.-exp(-d*dz*2.4);
     float depth=exp(-(z-.3)*.38);
-    float glow=backlit*exp(-dot(uv,uv)*2.2);
+    float glow=backlit*edge*.7;             // light the outer fog, not the center
     vec3 c=vec3(.80,.81,.82)*(.16+.55*d)*depth+vec3(.95,.93,.88)*glow*d*.55;
     col+=(1.-acc)*a*c; acc+=(1.-acc)*a;
   }
