@@ -5,7 +5,7 @@ const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
 const vs=`#version 300 es
 in vec2 p; void main(){ gl_Position=vec4(p,0.,1.); }`;
 // Raymarch a slab of 3D noise between zA and zB, front-to-back, output premultiplied.
-const fs=(STEPS)=>`#version 300 es
+const fs=(STEPS,OPAQUE)=>`#version 300 es
 precision highp float;
 uniform vec2 R; uniform float T; uniform vec2 M; uniform vec2 V;
 uniform vec4 VP;   // visible viewport inside the canvas (x,y,w,h px); the canvas can overhang it under mobile browser bars
@@ -57,7 +57,7 @@ void main(){
     col+=(1.-acc)*a*c; acc+=(1.-acc)*a;
   }
   col+=(h3(vec3(gl_FragCoord.xy,T))-.5)*.012*acc*jitAmt;
-  o=vec4(col,acc);
+  o=vec4(col,${OPAQUE?'1.':'acc'});      // the back layer paints its own black so the page background only shows in browser bars
 }`;
 
 function layer(id,opt){
@@ -67,25 +67,31 @@ function layer(id,opt){
   const sh=(t,s)=>{const x=gl.createShader(t);gl.shaderSource(x,s);gl.compileShader(x);
     if(!gl.getShaderParameter(x,gl.COMPILE_STATUS))throw new Error(gl.getShaderInfoLog(x));return x;};
   const pr=gl.createProgram();
-  gl.attachShader(pr,sh(gl.VERTEX_SHADER,vs));gl.attachShader(pr,sh(gl.FRAGMENT_SHADER,fs(opt.steps)));gl.linkProgram(pr);gl.useProgram(pr);
+  gl.attachShader(pr,sh(gl.VERTEX_SHADER,vs));gl.attachShader(pr,sh(gl.FRAGMENT_SHADER,fs(opt.steps,opt.opaque)));gl.linkProgram(pr);gl.useProgram(pr);
   const b=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,b);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,3,-1,-1,3]),gl.STATIC_DRAW);
   const l=gl.getAttribLocation(pr,'p');gl.enableVertexAttribArray(l);gl.vertexAttribPointer(l,2,gl.FLOAT,false,0,0);
   const U=n=>gl.getUniformLocation(pr,n);
   gl.uniform1f(U('zA'),opt.zA);gl.uniform1f(U('zB'),opt.zB);gl.uniform1f(U('gain'),opt.gain);
   gl.uniform1f(U('backlit'),opt.backlit);gl.uniform1f(U('clearAmt'),opt.clear);gl.uniform1f(U('jitAmt'),opt.jit);
   const uR=U('R'),uT=U('T'),uM=U('M'),uV=U('V'),uVP=U('VP'),uW=U('W');
+  let vp=[0,0,2,2], px=new Uint8Array(0);
   return {
     resize(){ const s=Math.min(devicePixelRatio||1,2)*opt.res, cw=cv.clientWidth, ch=cv.clientHeight;
       cv.width=Math.max(2,Math.round(cw*s)); cv.height=Math.max(2,Math.round(ch*s)); gl.viewport(0,0,cv.width,cv.height);
       // The canvas overhangs the viewport evenly, so the visible area sits centered inside it.
-      gl.uniform4f(uVP,(cw-innerWidth)/2*s,(ch-innerHeight)/2*s,innerWidth*s,innerHeight*s); },
+      vp=[(cw-innerWidth)/2*s,(ch-innerHeight)/2*s,innerWidth*s,innerHeight*s].map(Math.round);
+      gl.uniform4f(uVP,...vp); },
+    // Average premultiplied RGBA (0-1) of one row at the top or bottom edge of the visible area. Call right after draw().
+    edge(top){ const w=Math.max(1,vp[2]); if(px.length!==w*4)px=new Uint8Array(w*4);
+      gl.readPixels(vp[0],top?vp[1]+vp[3]-1:vp[1],w,1,gl.RGBA,gl.UNSIGNED_BYTE,px);
+      const c=[0,0,0,0]; for(let i=0;i<px.length;i++)c[i&3]+=px[i]; return c.map(x=>x/w/255); },
     draw(t,m,v,w){ gl.uniform2f(uR,cv.width,cv.height);gl.uniform1f(uT,t);gl.uniform2f(uM,m.x,m.y);gl.uniform2f(uV,v.x,v.y);gl.uniform3f(uW,w.x,w.y,w.a);gl.drawArrays(gl.TRIANGLES,0,3); }
   };
 }
 
 let back,front;
 try{
-  back =layer('back', {steps:14,zA:1.0,zB:4.2,gain:1.0,backlit:.9,clear:.25,res:.5,jit:0});
+  back =layer('back', {opaque:true,steps:14,zA:1.0,zB:4.2,gain:1.0,backlit:.9,clear:.25,res:.5,jit:0});
   front=layer('front',{steps:8,zA:.32,zB:.95,gain:.55,backlit:.15,clear:.85,res:.7,jit:0});
 }catch(e){console.error(e);}
 if(!back){document.body.classList.add('no-fog');return;}
@@ -94,7 +100,25 @@ let T=30;
 const m={x:.5,y:.45,tx:.5,ty:.45}, v={x:0,y:0}; let lx=null,ly=null,lt=0;
 function resize(){back.resize();front&&front.resize();frame();}
 const noWisp={x:0,y:0,a:0}, wisp={x:0,y:0,a:0,t:-1,dir:1,y0:0,next:T+4};
-function frame(){back.draw(T,m,v,noWisp);front&&front.draw(T,m,v,wisp);}
+let frames=0;
+function frame(){back.draw(T,m,v,noWisp);front&&front.draw(T,m,v,wisp);if(frames++%12===0)tintBars();}
+// Safari fills its status bar and toolbar with the color at the page's top and bottom edges rather than drawing
+// the page under them, so keep fixed edge strips (and theme-color) matched to the fog at those edges.
+const strips={top:document.querySelector('.bar-tint.top'),bottom:document.querySelector('.bar-tint.bottom')};
+const themeMeta=document.querySelector('meta[name="theme-color"]');
+const tints={top:'',bottom:''};
+function tintBars(){
+  for(const k of ['top','bottom']){
+    const b=back.edge(k==='top'), f=front?front.edge(k==='top'):[0,0,0,0];
+    const rgb=[0,1,2].map(i=>Math.round((f[i]+b[i]*(1-f[3]))*255)), css=`rgb(${rgb})`;   // front over back over black
+    if(css===tints[k])continue; tints[k]=css;
+    if(strips[k])strips[k].style.backgroundColor=css;
+    if(k==='top'&&themeMeta)themeMeta.content=css;
+  }
+  // Fallback when Safari ignores the strips: the page background, as the midpoint of the two edges.
+  document.body.style.backgroundColor=document.documentElement.style.backgroundColor=mix(tints.top,tints.bottom);
+}
+const mix=(a,b)=>{const x=a.match(/\d+/g),y=b.match(/\d+/g);return `rgb(${x.map((v,i)=>Math.round((+v + +y[i])/2))})`;};
 // A wisp starts every 7-10s, crosses the center over 5.5s and fades in and out on the way.
 function stepWisp(){
   if(wisp.t<0&&T>=wisp.next){wisp.t=T;wisp.dir=Math.random()<.5?-1:1;wisp.y0=-.12+Math.random()*.18;wisp.next=T+7+Math.random()*3;}

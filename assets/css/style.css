@@ -42,6 +42,21 @@ canvas {
     height: calc(100% + 280px);
   }
 }
+/* Edge strips whose color Safari picks up for its status bar and toolbar; fog.js keeps them matched to the fog */
+.bar-tint {
+  position: fixed;
+  left: 0;
+  right: 0;
+  height: 4px;
+  z-index: 0; /* under the fog canvases, which come later in the DOM */
+  background: #000;
+}
+.bar-tint.top {
+  top: 0;
+}
+.bar-tint.bottom {
+  bottom: 0;
+}
 #back {
   z-index: 0;
   filter: blur(2px);
@@ -65,6 +80,7 @@ canvas {
   padding-block: 32px;
   padding-left: max(16px, env(safe-area-inset-left, 0px));
   padding-right: max(16px, env(safe-area-inset-right, 0px));
+  pointer-events: none; /* let edge hit-tests reach .bar-tint; the column re-enables it for the links */
 }
 .col {
   display: flex;
@@ -72,6 +88,7 @@ canvas {
   align-items: center;
   gap: 22px;
   max-width: 44rem;
+  pointer-events: auto;
 }
 
 h1 {
@@ -128,4 +145,5 @@ nav a:focus-visible {
   font-variant-numeric: tabular-nums;
   text-shadow: 0 0 6px #000, 0 0 14px #000;
   padding-bottom: calc(22px + env(safe-area-inset-bottom, 0px));
+  pointer-events: none;
 }
